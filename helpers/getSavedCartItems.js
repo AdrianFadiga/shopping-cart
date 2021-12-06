@@ -1,6 +1,6 @@
 const getSavedCartItems = () => {
   document.querySelector('.cart__items').innerHTML = localStorage.getItem('cartItems');
-  // document.querySelector('.total-price').innerHTML = localStorage.getItem('counter');
+  document.querySelector('.total-price').innerText = localStorage.getItem('counter');
 };
 
 if (typeof module !== 'undefined') {

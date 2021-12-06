@@ -1,6 +1,6 @@
 const saveCartItems = () => {
   localStorage.setItem('cartItems', document.querySelector('.cart__items').innerHTML);
-  // localStorage.setItem('counter', document.querySelector('.total-price').innerHTML);
+  localStorage.setItem('counter', counter);
 };
 
 if (typeof module !== 'undefined') {

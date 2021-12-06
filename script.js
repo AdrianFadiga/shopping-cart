@@ -14,11 +14,11 @@ function createCustomElement(element, className, innerText) {
   e.innerText = innerText;
   return e;
 }
+
 // Cria os itens
 function createProductItemElement({ sku, name, image }) {
   const section = document.createElement('section');
   section.className = 'item';
-
   section.appendChild(createCustomElement('span', 'item__sku', sku));
   section.appendChild(createCustomElement('span', 'item__title', name));
   section.appendChild(createProductImageElement(image));
@@ -32,56 +32,71 @@ function createProductItemElement({ sku, name, image }) {
 function getSkuFromProductItem(item) {
   return item.querySelector('span.item__sku').innerText;
 }
+
 // Clique remove os itens do carrinho
 function cartItemClickListener(event) {
-  counter -= event.target.id;
+  counter -= Math.round(event.target.id);
   document.querySelector('.total-price').innerHTML = `Valor no carrinho: R$ ${counter}`;
   event.target.parentElement.removeChild(event.target);
+  saveCartItems();
 }
+
 // Adiciona item ao carrinho
-const createCartItemElement = async ({ sku, name, salePrice }) => {  
+const createCartItemElement = ({ sku, name, salePrice }) => {  
   const li = document.createElement('li');
   li.className = 'cart__item';
   li.innerText = `SKU: ${sku} | NAME: ${name} | PRICE: $${salePrice}`;
   li.id = salePrice;
   li.addEventListener('click', cartItemClickListener);
-  const cartItems = document.querySelector('ol');
-  cartItems.appendChild(li);
+  document.querySelector('ol').appendChild(li); 
   return li;
 };
-// Dá fetch na API através do ID e chama a função de adicionar os itens para a lista
+
+// Dá fetch na API através do ID e chama a função de adicionar os itens para o carrinho, utilizando a data
 const fetchItems = async (event) => {
   const id = event.target.parentElement.firstChild.innerText;
   const url = `https://api.mercadolibre.com/items/${id}`;
   const response = await fetch(url);
   const data = await response.json();
-  const { id: sku, title: name, price: salePrice } = await data;
+  const { id: sku, title: name, price: salePrice } = data;  
   createCartItemElement({ sku, name, salePrice });
-  saveCartItems();
+  return data;
 };
+
 // Função somando o valor total no carrinho:
 const adicionandoPreçoTotal = async (event) => {
   const id = event.target.parentElement.firstChild.innerText;
   const url = `https://api.mercadolibre.com/items/${id}`;
   const response = await fetch(url);
   const data = await response.json();
-  counter += await data.price;
+  counter += Math.round(data.price);
   document.querySelector('.total-price').innerHTML = `Valor no carrinho: R$ ${counter}`;
+  saveCartItems();
 };
 
-// Criando o item do totalPrice:
-const addTotalPrice = () => {
-  coisa = document.createElement('p');
-  coisa.className = 'total-price';
-  coisa.innerHTML = `Valor no carrinho: R$ ${counter}`;
-  document.querySelector('.cart').appendChild(coisa);  
-};
-
+// Cria a função de esvaziar o carrinho:
 const emptyCart = () => {
   document.querySelector('.cart__items').innerHTML = '';
-  saveCartItems();
   counter = 0;
   document.querySelector('.total-price').innerHTML = `Valor no carrinho: R$ ${counter}`;
+  saveCartItems();
+};
+
+// Função de fazer nova pesquisa conforme os itens do header
+const changeItems = async (event) => {
+  document.querySelector('.items').innerHTML = '';
+  showItems(event.target.id);
+  initEventListeners();
+};
+
+const showItems = async (id) => {
+  const elementItems = document.querySelector('.items');
+  const dataResults = await fetchProducts(id);
+  for (let i = 0; i <= 11; i += 1) {
+    const { id: sku, title: name, thumbnail: image } = dataResults.results[i];
+    elementItems.appendChild(createProductItemElement({ sku, name, image }));
+  }
+  initEventListeners();
 };
 // Iniciador de escutadores de evento
 const initEventListeners = () => {
@@ -91,26 +106,17 @@ const initEventListeners = () => {
   const cartItems = document.querySelectorAll('.cart__item');
   cartItems.forEach((item) =>
     item.addEventListener('click', cartItemClickListener));
-    buttons.forEach((button) =>
-    button.addEventListener('click', fetchItems));
     const emptyCartBtn = document.querySelector('.empty-cart');
     emptyCartBtn.addEventListener('click', emptyCart);
   buttons.forEach((button) =>
     button.addEventListener('click', adicionandoPreçoTotal));
+  const headerButtons = document.querySelectorAll('.change-filter');
+  headerButtons.forEach((button) => button.addEventListener('click', changeItems));
 };
+
 window.onload = async () => {
-  const elementItems = document.querySelector('.items');
-  const dataResults = await fetchProducts('computador');
-  dataResults.results.forEach((data) => {
-    const { id: sku, title: name, thumbnail: image } = data;
-    elementItems.appendChild(createProductItemElement({ sku, name, image }));
-  });
-  const testee = await fetchProducts('computador');
-  const loading = document.querySelector('.loading');
-  if (testee) {
-    loading.remove();
-  }
-  getSavedCartItems();
+  await fetchProducts('computador');
+  getSavedCartItems(); 
+  showItems('computador');
   initEventListeners();
-  addTotalPrice();
 };

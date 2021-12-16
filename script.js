@@ -7,6 +7,7 @@ function createProductImageElement(imageSource) {
   img.src = imageSource;
   return img;
 }
+
 // Cria um elemento
 function createCustomElement(element, className, innerText) {
   const e = document.createElement(element);
@@ -23,7 +24,7 @@ function createProductItemElement({ sku, name, image }) {
   section.appendChild(createCustomElement('span', 'item__title', name));
   section.appendChild(createProductImageElement(image));
   section.appendChild(
-    createCustomElement('button', 'item__add', 'Adicionar ao carrinho!'),
+    createCustomElement('button', 'item__add', `${sku}`),
   );
 
   return section;
@@ -98,6 +99,14 @@ const showItems = async (id) => {
   }
   initEventListeners();
 };
+// Trocando o botão de adicionar ao carrinho para o preço do item
+const colocandoPreçosNosProdutos = () => {
+  const allItems = document.querySelectorAll('.item__add');
+  allItems.forEach(() => {
+    console.log('oi');
+  });
+};
+
 // Iniciador de escutadores de evento
 const initEventListeners = () => {
   const buttons = document.querySelectorAll('.item__add');
@@ -119,4 +128,5 @@ window.onload = async () => {
   getSavedCartItems(); 
   showItems('computador');
   initEventListeners();
+  colocandoPreçosNosProdutos();
 };
